@@ -1,0 +1,4 @@
+[submodule "PRFclass"]
+  path = PRFclass
+  url = https://github.com/dlinhardt/PRFclass.git
+  branch = master
