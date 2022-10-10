@@ -1,0 +1,30 @@
+name: scientific
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - scipy
+  - tqdm
+  - matplotlib
+  - reportlab
+  - seaborn
+  - pandas
+  - nilearn
+  - nibabel
+  - jupyter
+  - hdf5
+  - h5py
+  - scikit-image
+  - scikit-learn
+  - pip
+  - fsleyes
+  - pdfrw
+  - pip:
+    - pybids
+    - neuropythy
+    - bids-validator
+    - mayavi
+    - nipy
+    - pysurfer
