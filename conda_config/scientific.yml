@@ -1,4 +1,4 @@
-name: scientific
+name: david
 channels:
   - conda-forge
   - defaults
@@ -10,6 +10,7 @@ dependencies:
   - matplotlib
   - reportlab
   - seaborn
+  - spyder
   - pandas
   - nilearn
   - nibabel
@@ -21,10 +22,10 @@ dependencies:
   - pip
   - fsleyes
   - pdfrw
+  - mayavi
   - pip:
     - pybids
     - neuropythy
     - bids-validator
-    - mayavi
     - nipy
     - pysurfer
