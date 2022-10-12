@@ -62,25 +62,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     wget \
     subversion\
-    vim \
+y    vim \
     bsdtar 
-
-
-
-# Download Freesurfer dev from MGH and untar to /opt
-#RUN wget -N -qO- ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.1.1/freesurfer-linux-centos6_x86_64-7.1.1.tar.gz | tar -xz -C /opt && chown -R root:root /opt/freesurfer && chmod -R a+rx /opt/freesurfer
-
-
-#ENV FREESURFER_HOME /opt/freesurfer
-
-
-###########################
-# Instal neurodebian, I don't know if it is required anymore or not...
-# ( I will skip it for now)
-
-
-
-
 
 
 ############################
@@ -109,23 +92,14 @@ RUN mkdir -p ${FLYWHEEL}
 # Copy and configure run script and metadata code
 COPY bin/run \
 	bin/run.py \
-	scripts/stim_as_nii.py    \ 
-	scripts/nii_to_surfNii.py \
-	scripts/link_stimuli.py    \
       ${FLYWHEEL}/
 
 # Handle file properties for execution
 RUN chmod +x \
       ${FLYWHEEL}/run \
-      ${FLYWHEEL}/run.py \
-	${FLYWHEEL}/stim_as_nii.py    \ 
-	${FLYWHEEL}/nii_to_surfNii.py \
-	${FLYWHEEL}/link_stimuli.py    
+      ${FLYWHEEL}/run.py \  
 WORKDIR ${FLYWHEEL}
 # Run the run.sh script on entry.
 ENTRYPOINT ["/flywheel/v0/run"]
 
-#make it work under singularity 
-# RUN ldconfig: it fails in BCBL, check Stanford 
-#https://wiki.ubuntu.com/DashAsBinSh 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
