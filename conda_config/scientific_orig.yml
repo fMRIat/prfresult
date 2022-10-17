@@ -7,6 +7,7 @@ dependencies:
   - conda-build
   - numpy
   - scipy
+  - tqdm
   - matplotlib
   - reportlab
   - seaborn
@@ -15,7 +16,10 @@ dependencies:
   - jupyter
   - pip
   - pdfrw
-  - spyder
+  - pyqtwebengine
+  - traits
+  - ipywidgets
+  - ipyevents
   - mayavi
   - pip:
     - pybids
