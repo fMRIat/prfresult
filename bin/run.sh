@@ -83,12 +83,7 @@ done
 source /opt/conda/etc/profile.d/conda.sh
 conda activate scientific
 python --version
-jupyter nbextension install --py mayavi --user >/dev/null
-
-# config for pysurfer
-#export QT_API=pyqt
-#export ETS_TOOLKIT=qt4
-
+jupyter nbextension install --py mayavi --user > /dev/null 2>&1
 
 # Main Script ##################################################################
 
