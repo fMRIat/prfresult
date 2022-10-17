@@ -15,6 +15,7 @@ dependencies:
   - jupyter
   - pip
   - pdfrw
+  - ipyevents
   - spyder
   - mayavi
   - pip:

@@ -83,8 +83,7 @@ done
 source /opt/conda/etc/profile.d/conda.sh
 conda activate scientific
 python --version
-pip install ipyevents
-jupyter nbextension install --py mayavi --user
+jupyter nbextension install --py mayavi --user >/dev/null
 
 # config for pysurfer
 #export QT_API=pyqt
