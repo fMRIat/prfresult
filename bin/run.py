@@ -22,8 +22,6 @@ flywheelBase = '/flywheel/v0'
 sys.path.insert(0, flywheelBase)
 
 configFile = path.join(flywheelBase, 'config.json')
-bidsDir = path.join(flywheelBase, 'BIDS')
-
 
 # updates nested dicts
 def update(d, u):
@@ -79,6 +77,7 @@ defaultConfig = {
  	'sessions' : ['all'],
  	'tasks'    : ['all'],
  	'runs'     : ['all'],
+    'prfanalyzeAnalysis': '01',
     'masks' : {
      	'rois'     : [['V1']],
      	'atlases'  : ['benson'],
@@ -158,106 +157,121 @@ cortexParamsCombs = list(itertools.product(
                     ))
 
 print()
-# get the BIDS layout
-layout = bids.BIDSLayout(bidsDir)
 
-# subject from config and check
-BIDSsubs = layout.get(return_type='id', target='subject')
-subs = config2list(config['subjects'], BIDSsubs)
+################################################
+# loop over specified prfprepare analyses
+for prfanalyzeAnalysis in config['prfanalyzeAnalysis']:
+    prfanalyzeP = path.join(flywheelBase, 'data', 'derivatives',
+                            'prfanalyze-vista', f'analysis-{prfanalyzeAnalysis}')
+    # read the options.json
+    with open(path.join(prfanalyzeP, 'options.json'), 'r') as fl:
+        prfanalyzeConfig = json.load(fl)
+
+    prfprepareAnalysis = prfanalyzeConfig['prfprepareAnalysis']
+    prfprepareP = path.join(flywheelBase, 'data', 'derivatives',
+                            'prfanalyze-vista', f'analysis-{prfprepareAnalysis}')
+
+    # get the BIDS layout
+    layout = bids.BIDSLayout(prfprepareP)
+
+    # subject from config and check
+    BIDSsubs = layout.get(return_type='id', target='subject')
+    subs = config2list(config['subjects'], BIDSsubs)
 
 ################################################
 # loop over subjects
-for subI,sub in enumerate(subs):
+    for subI,sub in enumerate(subs):
 
-    if sub not in BIDSsubs:
-        die(f'We did not find given subject {sub} in BIDS dir!')
+        if sub not in BIDSsubs:
+            die(f'We did not find given subject {sub} in BIDS dir!')
 
-    # session if given otherwise it will loop through sessions from BIDS
-    BIDSsess = layout.get(subject=sub, return_type='id', target='session')
-    sess = config2list(config['sessions'], BIDSsess)
+        # session if given otherwise it will loop through sessions from BIDS
+        BIDSsess = layout.get(subject=sub, return_type='id', target='session')
+        sess = config2list(config['sessions'], BIDSsess)
 
 ################################################
 # loop over sessions
-    for sesI, ses in enumerate(sess):
+        for sesI, ses in enumerate(sess):
 
-        if ses not in BIDSsess:
-            die(f'We did not find given session {ses} in subject {sub}!')
-        else:
-            note(f'Working: sub-{sub} ses-{ses}...')
+            if ses not in BIDSsess:
+                die(f'We did not find given session {ses} in subject {sub}!')
+            else:
+                note(f'Working: sub-{sub} ses-{ses}...')
 
-        # find all tasks when given, else all tasks
-        BIDStasks = layout.get(subject=sub, session=ses, return_type='id', target='task')
-        tasks = config2list(config['tasks'], BIDStasks)
+            # find all tasks when given, else all tasks
+            BIDStasks = layout.get(subject=sub, session=ses, return_type='id', target='task')
+            tasks = config2list(config['tasks'], BIDStasks)
 
 ################################################
 # loop over tasks
-        for taskI, task in enumerate(tasks):
-            # find all runs when given, else all runs
-            BIDSruns = layout.get(subject=sub, session=ses, task=task, return_type='id', target='run')
-            runs = config2list(config['runs'], BIDSruns)
+            for taskI, task in enumerate(tasks):
+                # find all runs when given, else all runs
+                BIDSruns = layout.get(subject=sub, session=ses, task=task, return_type='id', target='run')
+                runs = config2list(config['runs'], BIDSruns)
+                runs = [r if len(str(r))<=2 else f'{r}avg' for r in runs]
 
 ################################################
-# loop over subjects
-            for runI,run in enumerate(runs):
-                try:
-                    # now load the analysis
-                    ana = PRF.from_docker(study   = 'data',
-                                        subject = sub,
-                                        session = ses,
-                                        task    = task,
-                                        run     = run,
-                                        method  = 'vista',
-                                        analysis = '01',
-                                        hemi    = '',
-                                        baseP   = flywheelBase,
-                                        orientation = 'VF'
-                                        )
-                except:
-                    continue
+# loop over runs
+                for runI,run in enumerate(runs):
+                    try:
+                        # now load the analysis
+                        ana = PRF.from_docker(study   = 'data',
+                                            subject = sub,
+                                            session = ses,
+                                            task    = task,
+                                            run     = run,
+                                            method  = 'vista',
+                                            analysis = prfanalyzeAnalysis,
+                                            hemi    = '',
+                                            baseP   = flywheelBase,
+                                            orientation = 'VF'
+                                            )
+                    except:
+                        continue
 ################################################
 # apply all masks
-                for roi,atlas,varExpThresh,eccThresh,betaThresh in allMaskCombs:
+                    for roi,atlas,varExpThresh,eccThresh,betaThresh in allMaskCombs:
 
-                    ana.maskROI(area  = roi,
-                                atlas = atlas)
+                        ana.maskROI(area  = roi,
+                                    atlas = atlas)
 
-                    ana.maskVarExp(varExpThresh = varExpThresh)
+                        ana.maskVarExp(varExpThresh = varExpThresh)
 
-                    if eccThresh:
-                        ana.maskEcc(rad = eccThresh)
+                        if eccThresh:
+                            ana.maskEcc(rad = eccThresh)
 
-                    if betaThresh:
-                        ana.maskBetaThresh(betaMax = betaThresh)
+                        if betaThresh:
+                            ana.maskBetaThresh(betaMax = betaThresh)
 
 
 ################################################
 # finally cretate Coverage plots
-                    if config['coveragePlot']['create']:
+                        if config['coveragePlot']['create']:
 
-                        for method, minColbar, in covMapParamsCombs:
+                            for method, minColbar, in covMapParamsCombs:
 
-                            ana.plot_covMap(method  = method,
-                                            cmapMin = minColbar,
-                                            show    = False,
-                                            save    = True,
-                                            force   = force,
-                                            )
+                                ana.plot_covMap(method  = method,
+                                                cmapMin = minColbar,
+                                                show    = False,
+                                                save    = True,
+                                                force   = force,
+                                                )
 
 
 ################################################
 # cretate the cortex gif plots
-                    if config['cortexPlot']['createCortex']:
+                        if config['cortexPlot']['createCortex']:
 
-                        for param, hemi, surface in cortexParamsCombs:
+                            for param, hemi, surface in cortexParamsCombs:
 
-                            ana.plot_toSurface(param = param,
-                                                hemi  = hemi,
-                                                save  = True,
-                                                fmriprepAna      = '01',
-                                                forceNewPosition = False,
-                                                surface     = surface,
-                                                showBorders = config['cortexPlot']['showBorders'],
-                                                interactive = False,
-                                                create_gif  = config['cortexPlot']['createGIF'],
-                                                headless    = True,
-                                                )
+                                ana.plot_toSurface(param = param,
+                                                    hemi  = hemi,
+                                                    save  = True,
+                                                    fmriprepAna      = '01',
+                                                    forceNewPosition = False,
+                                                    surface     = surface,
+                                                    showBorders = config['cortexPlot']['showBorders'],
+                                                    interactive = False,
+                                                    create_gif  = config['cortexPlot']['createGIF'],
+                                                    headless    = True,
+                                                    )
