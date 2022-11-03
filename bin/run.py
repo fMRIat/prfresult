@@ -169,7 +169,7 @@ with open(path.join(prfanalyzeP, 'options.json'), 'r') as fl:
 
 prfprepareAnalysis = prfanalyzeConfig['prfprepareAnalysis']
 prfprepareP = path.join(flywheelBase, 'data', 'derivatives',
-                        'prfanalyze-vista', f'analysis-{prfprepareAnalysis}')
+                        'prprepare', f'analysis-{prfprepareAnalysis}')
 
 # get the BIDS layout
 layout = bids.BIDSLayout(prfprepareP)
@@ -216,16 +216,16 @@ for subI,sub in enumerate(subs):
                 try:
                     # now load the analysis
                     ana = PRF.from_docker(study   = 'data',
-                                        subject = sub,
-                                        session = ses,
-                                        task    = task,
-                                        run     = run,
-                                        method  = 'vista',
-                                        analysis = prfanalyzeAnalysis,
-                                        hemi    = '',
-                                        baseP   = flywheelBase,
-                                        orientation = 'VF'
-                                        )
+                                          subject = sub,
+                                          session = ses,
+                                          task    = task,
+                                          run     = run,
+                                          method  = 'vista',
+                                          analysis = prfanalyzeAnalysis,
+                                          hemi    = '',
+                                          baseP   = flywheelBase,
+                                          orientation = 'VF'
+                                          )
                 except:
                     continue
 ################################################
@@ -265,13 +265,13 @@ for subI,sub in enumerate(subs):
                         for param, hemi, surface in cortexParamsCombs:
 
                             ana.plot_toSurface(param = param,
-                                                hemi  = hemi,
-                                                save  = True,
-                                                fmriprepAna      = '01',
-                                                forceNewPosition = False,
-                                                surface     = surface,
-                                                showBorders = config['cortexPlot']['showBorders'],
-                                                interactive = False,
-                                                create_gif  = config['cortexPlot']['createGIF'],
-                                                headless    = True,
-                                                )
+                                               hemi  = hemi,
+                                               save  = True,
+                                               fmriprepAna      = '01',
+                                               forceNewPosition = False,
+                                               surface     = surface,
+                                               showBorders = config['cortexPlot']['showBorders'],
+                                               interactive = False,
+                                               create_gif  = config['cortexPlot']['createGIF'],
+                                               headless    = True,
+                                               )
