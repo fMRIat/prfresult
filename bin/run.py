@@ -169,7 +169,7 @@ with open(path.join(prfanalyzeP, 'options.json'), 'r') as fl:
 
 prfprepareAnalysis = prfanalyzeConfig['prfprepareAnalysis']
 prfprepareP = path.join(flywheelBase, 'data', 'derivatives',
-                        'prprepare', f'analysis-{prfprepareAnalysis}')
+                        'prfprepare', f'analysis-{prfprepareAnalysis}')
 
 # get the BIDS layout
 layout = bids.BIDSLayout(prfprepareP)
