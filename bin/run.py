@@ -298,6 +298,9 @@ for subI,sub in enumerate(subs):
 ################################################
 # cretate the cortex gif plots
                     if config['cortexPlot']['createCortex']:
+                        if analysisSpace == 'volume':
+                            print('We can not yet plot volume data to surface!')
+                            continue
 
                         for param, hemi, surface in cortexParamsCombs:
 
