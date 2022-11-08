@@ -6,16 +6,21 @@ Created on Wed Oct 12 16:11:36 2022
 @author: dlinhardt
 """
 
+import os
 import sys
+
 sys.path.append('/')
 
-from PRFclass import PRF
-from os import path
-import json
-import bids
 import collections.abc
 import itertools
+import json
+from glob import glob
+from os import path
 
+import bids
+import nibabel as nib
+import numpy as np
+from PRFclass import PRF
 
 # get all needed functions
 flywheelBase = '/flywheel/v0'
@@ -98,6 +103,7 @@ defaultConfig = {
          'surface'      : ['sphere'],
          'showBordersArea'  : ['V1'],
     },
+    'saveAs3D': True,
     'verbose' : True,
     'force'   : False,
 }
@@ -171,6 +177,12 @@ prfprepareAnalysis = prfanalyzeConfig['prfprepareAnalysis']
 prfprepareP = path.join(flywheelBase, 'data', 'derivatives',
                         'prfprepare', f'analysis-{prfprepareAnalysis}')
 
+# read the options.json
+with open(path.join(prfprepareP, 'options.json'), 'r') as fl:
+    prfprepareConfig = json.load(fl)
+
+analysisSpace = prfprepareConfig['analysisSpace']
+
 # get the BIDS layout
 layout = bids.BIDSLayout(prfprepareP)
 
@@ -228,6 +240,7 @@ for subI,sub in enumerate(subs):
                                           )
                 except:
                     continue
+                
 ################################################
 # apply all masks
                 for roi,atlas,varExpThresh,eccThresh,betaThresh in allMaskCombs:
@@ -243,6 +256,30 @@ for subI,sub in enumerate(subs):
                     if betaThresh:
                         ana.maskBetaThresh(betaMax = betaThresh)
 
+
+################################################
+# save the result files back to volumes
+                if analysisSpace == 'volume' and config['saveAs3D']:
+                    outFpath = path.join(flywheelBase, 'data', 'derivatives', 
+                                         'prfresult', f'analysis-{prfanalyzeAnalysis}',
+                                         'volumeResults', f'sub-{sub}', f'ses-{ses}')
+                    os.makedirs(outFpath, exist_ok=True)
+
+                    dummyFileP = glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep', 
+                                                f'analysis-{prfprepareConfig["fmriprep_analysis"]}', 
+                                                f'sub-{sub}', f'ses-{ses}', 'func', 
+                                                '*_space-T1w_boldref.nii.gz'))[0]
+                    img = nib.load(dummyFileP)
+                    
+                    for param in ['x0', 'y0', 's0', 'r0', 'phi0']:
+                        outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results')
+
+                        dat = np.zeros(img.shape)
+                        for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
+                            dat[tuple(pos)] = getattr(ana, param)[boldI]
+
+                        newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
+                        nib.save(newNii, path.join(outFpath, outFname[1]+'.nii.gz'))
 
 ################################################
 # finally cretate Coverage plots
@@ -267,7 +304,7 @@ for subI,sub in enumerate(subs):
                             ana.plot_toSurface(param = param,
                                                hemi  = hemi,
                                                save  = True,
-                                               fmriprepAna      = '01',
+                                               fmriprepAna      = prfprepareConfig['fmriprep_analysis'],
                                                forceNewPosition = False,
                                                surface     = surface,
                                                showBordersAtlas = 'all', 
