@@ -256,7 +256,6 @@ for subI,sub in enumerate(subs):
                     if betaThresh:
                         ana.maskBetaThresh(betaMax = betaThresh)
 
-
 ################################################
 # save the result files back to volumes
                 if analysisSpace == 'volume' and config['saveAs3D']:
@@ -271,8 +270,11 @@ for subI,sub in enumerate(subs):
                                                 '*_space-T1w_boldref.nii.gz'))[0]
                     img = nib.load(dummyFileP)
                     
-                    for param in ['x0', 'y0', 's0', 'r0', 'phi0']:
-                        outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results')
+                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:
+                        if param == 'mask':
+                            outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
+                        else:
+                            outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=True)
 
                         dat = np.zeros(img.shape)
                         for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
@@ -283,36 +285,36 @@ for subI,sub in enumerate(subs):
 
 ################################################
 # finally cretate Coverage plots
-                    if config['coveragePlot']['create']:
+                if config['coveragePlot']['create']:
 
-                        for method, minColbar, in covMapParamsCombs:
+                    for method, minColbar, in covMapParamsCombs:
 
-                            ana.plot_covMap(method  = method,
-                                            cmapMin = minColbar,
-                                            show    = False,
-                                            save    = True,
-                                            force   = force,
-                                            )
+                        ana.plot_covMap(method  = method,
+                                        cmapMin = minColbar,
+                                        show    = False,
+                                        save    = True,
+                                        force   = force,
+                                        )
 
 
 ################################################
 # cretate the cortex gif plots
-                    if config['cortexPlot']['createCortex']:
-                        if analysisSpace == 'volume':
-                            print('We can not yet plot volume data to surface!')
-                            continue
+                if config['cortexPlot']['createCortex']:
+                    if analysisSpace == 'volume':
+                        print('We can not yet plot volume data to surface!')
+                        continue
 
-                        for param, hemi, surface in cortexParamsCombs:
+                    for param, hemi, surface in cortexParamsCombs:
 
-                            ana.plot_toSurface(param = param,
-                                               hemi  = hemi,
-                                               save  = True,
-                                               fmriprepAna      = prfprepareConfig['fmriprep_analysis'],
-                                               forceNewPosition = False,
-                                               surface     = surface,
-                                               showBordersAtlas = 'all', 
-                                               showBordersArea  = config['cortexPlot']['showBordersArea'],        
-                                               interactive = False,
-                                               create_gif  = config['cortexPlot']['createGIF'],
-                                               headless    = True,
-                                               )
+                        ana.plot_toSurface(param = param,
+                                            hemi  = hemi,
+                                            save  = True,
+                                            fmriprepAna      = prfprepareConfig['fmriprep_analysis'],
+                                            forceNewPosition = False,
+                                            surface     = surface,
+                                            showBordersAtlas = 'all', 
+                                            showBordersArea  = config['cortexPlot']['showBordersArea'],        
+                                            interactive = False,
+                                            create_gif  = config['cortexPlot']['createGIF'],
+                                            headless    = True,
+                                            )
