@@ -21,6 +21,7 @@ import bids
 import nibabel as nib
 import numpy as np
 from PRFclass import PRF
+from matplotlib import pyplot as plt
 
 # get all needed functions
 flywheelBase = '/flywheel/v0'
@@ -194,6 +195,9 @@ subs = config2list(config['subjects'], BIDSsubs)
 # loop over subjects
 for subI,sub in enumerate(subs):
 
+    # close all open figures
+    plt.close('all')
+
     if sub not in BIDSsubs:
         die(f'We did not find given subject {sub} in BIDS dir!')
 
@@ -240,7 +244,7 @@ for subI,sub in enumerate(subs):
                                           )
                 except:
                     continue
-                
+
 ################################################
 # apply all masks
                 for roi,atlas,varExpThresh,eccThresh,betaThresh in allMaskCombs:
@@ -259,17 +263,17 @@ for subI,sub in enumerate(subs):
 ################################################
 # save the result files back to volumes
                 if analysisSpace == 'volume' and config['saveAs3D']:
-                    outFpath = path.join(flywheelBase, 'data', 'derivatives', 
+                    outFpath = path.join(flywheelBase, 'data', 'derivatives',
                                          'prfresult', f'analysis-{prfanalyzeAnalysis}',
                                          'volumeResults', f'sub-{sub}', f'ses-{ses}')
                     os.makedirs(outFpath, exist_ok=True)
 
-                    dummyFileP = glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep', 
-                                                f'analysis-{prfprepareConfig["fmriprep_analysis"]}', 
-                                                f'sub-{sub}', f'ses-{ses}', 'func', 
+                    dummyFileP = glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
+                                                f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
+                                                f'sub-{sub}', f'ses-{ses}', 'func',
                                                 '*_space-T1w_boldref.nii.gz'))[0]
                     img = nib.load(dummyFileP)
-                    
+
                     for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:
                         if param == 'mask':
                             outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
@@ -312,8 +316,8 @@ for subI,sub in enumerate(subs):
                                             fmriprepAna      = prfprepareConfig['fmriprep_analysis'],
                                             forceNewPosition = False,
                                             surface     = surface,
-                                            showBordersAtlas = 'all', 
-                                            showBordersArea  = config['cortexPlot']['showBordersArea'],        
+                                            showBordersAtlas = 'all',
+                                            showBordersArea  = config['cortexPlot']['showBordersArea'],
                                             interactive = False,
                                             create_gif  = config['cortexPlot']['createGIF'],
                                             headless    = True,
