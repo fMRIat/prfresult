@@ -132,7 +132,6 @@ def note(*args):
 note('Following configuration is used:')
 note(json.dumps(config, indent=4))
 
-
 # find all mask combinations
 allMaskCombs = list(itertools.product(
                     config2list(config['masks']['rois']),
@@ -179,7 +178,7 @@ analysisSpace = prfprepareConfig['analysisSpace']
 layout = bids.BIDSLayout(prfprepareP)
 
 # subject from config and check
-BIDSsubs = layout.get(return_type='id', target='subject')
+BIDSsubs = layout.get_subjects()
 subs = config2list(config['subjects'], BIDSsubs)
 
 ################################################
@@ -193,7 +192,7 @@ for subI,sub in enumerate(subs):
         die(f'We did not find given subject {sub} in BIDS dir!')
 
     # session if given otherwise it will loop through sessions from BIDS
-    BIDSsess = layout.get(subject=sub, return_type='id', target='session')
+    BIDSsess = layout.get_session(subject=sub)
     sess = config2list(config['sessions'], BIDSsess)
 
 ################################################
@@ -206,14 +205,14 @@ for subI,sub in enumerate(subs):
             note(f'Working: sub-{sub} ses-{ses}...')
 
         # find all tasks when given, else all tasks
-        BIDStasks = layout.get(subject=sub, session=ses, return_type='id', target='task')
+        BIDStasks = layout.get_task(subject=sub, session=ses)
         tasks = config2list(config['tasks'], BIDStasks)
 
 ################################################
 # loop over tasks
         for taskI, task in enumerate(tasks):
             # find all runs when given, else all runs
-            BIDSruns = layout.get(subject=sub, session=ses, task=task, return_type='id', target='run')
+            BIDSruns = layout.get_run(subject=sub, session=ses, task=task)
             runs = config2list(config['runs'], BIDSruns)
             runs = [r if len(str(r)) < 4 else f'{r}avg' for r in runs]
 
@@ -272,12 +271,14 @@ for subI,sub in enumerate(subs):
                         else:
                             outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=True)
 
-                        dat = np.zeros(img.shape)
-                        for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
-                            dat[tuple(pos)] = getattr(ana, param)[boldI]
+                        outF = path.join(outFpath, outFname[1]+'.nii.gz')
+                        if not path.isfile(outF) or force:
+                            dat = np.zeros(img.shape)
+                            for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
+                                dat[tuple(pos)] = getattr(ana, param)[boldI]
 
-                        newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
-                        nib.save(newNii, path.join(outFpath, outFname[1]+'.nii.gz'))
+                            newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
+                            nib.save(newNii, outF)
 
 ################################################
 # finally cretate Coverage plots
