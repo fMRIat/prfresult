@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 12 16:11:36 2022
-
-@author: dlinhardt
-"""
-
+#%%
 import os
 import sys
 
@@ -19,6 +12,7 @@ from os import path
 
 import bids
 import nibabel as nib
+from nibabel.funcs import four_to_three
 import numpy as np
 from PRFclass import PRF
 from matplotlib import pyplot as plt
@@ -122,13 +116,10 @@ try:
     config = update(defaultConfig, jsonConfig)
 
 except Exception:
-    if not path.isfile(configFile):
-        with open(path.join(flywheelBase, 'prfresult_defaultConfig.json'), 'w') as fl:
-            json.dump(defaultConfig, fl, indent=4)
-        die('No config file provided we dropped the standard config.json!')
-
-    else:
-        die('Could not read config.json!')
+    with open(path.join(flywheelBase, 'config.json'), 'w') as fl:
+        json.dump(defaultConfig, fl, indent=4)
+    print('Could not read config.json!')
+    die('Dumped the default config.')
 
 verbose = config['verbose']
 force = config['force']
@@ -224,7 +215,7 @@ for subI,sub in enumerate(subs):
             # find all runs when given, else all runs
             BIDSruns = layout.get(subject=sub, session=ses, task=task, return_type='id', target='run')
             runs = config2list(config['runs'], BIDSruns)
-            runs = [r if len(str(r))<=2 else f'{r}avg' for r in runs]
+            runs = [r if len(str(r)) < 4 else f'{r}avg' for r in runs]
 
 ################################################
 # loop over runs
@@ -271,8 +262,9 @@ for subI,sub in enumerate(subs):
                     dummyFileP = glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
                                                 f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
                                                 f'sub-{sub}', f'ses-{ses}', 'func',
-                                                '*_space-T1w_boldref.nii.gz'))[0]
-                    img = nib.load(dummyFileP)
+                                                '*desc-preproc_bold.nii*'))[0]
+
+                    img = four_to_three(nib.load(dummyFileP))[0]
 
                     for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:
                         if param == 'mask':
