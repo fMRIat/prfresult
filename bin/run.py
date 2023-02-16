@@ -258,14 +258,16 @@ for subI,sub in enumerate(subs):
                                          'volumeResults', f'sub-{sub}', f'ses-{ses}')
                     os.makedirs(outFpath, exist_ok=True)
 
-                    dummyFileP = glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
+                    dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
                                                 f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
                                                 f'sub-{sub}', f'ses-{ses}', 'func',
-                                                '*desc-preproc_bold.nii*'))[0]
+                                                '*desc-preproc_bold.nii*'))[0])
 
-                    img = four_to_three(nib.load(dummyFileP))[0]
+                    img = four_to_three(dummyFile)[0]
 
-                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:
+                    ana.loadTC()
+
+                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask', 'voxelTC0']:
                         if param == 'mask':
                             outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
                         else:
@@ -273,7 +275,12 @@ for subI,sub in enumerate(subs):
 
                         outF = path.join(outFpath, outFname[1]+'.nii.gz')
                         if not path.isfile(outF) or force:
-                            dat = np.zeros(img.shape)
+
+                            if param == 'voxelTC0':
+                                dat = np.zeros(dummyFile.shape)
+                            else:
+                                dat = np.zeros(img.shape)
+
                             for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
                                 dat[tuple(pos)] = getattr(ana, param)[boldI]
 
