@@ -267,7 +267,7 @@ for subI,sub in enumerate(subs):
 
                     ana.loadTC()
 
-                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask', 'voxelTC0']:
+                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
                         if param == 'mask':
                             outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
                         else:
