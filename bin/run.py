@@ -214,7 +214,7 @@ for subI,sub in enumerate(subs):
             # find all runs when given, else all runs
             BIDSruns = layout.get_run(subject=sub, session=ses, task=task)
             runs = config2list(config['runs'], BIDSruns)
-            runs = [r if len(str(r)) < 4 else f'{r}avg' for r in runs]
+            runs = [r if len(str(r)) < 4 or r.endswith('avg') else f'{r}avg' for r in runs]
 
 ################################################
 # loop over runs
@@ -261,7 +261,7 @@ for subI,sub in enumerate(subs):
                     dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
                                                 f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
                                                 f'sub-{sub}', f'ses-{ses}', 'func',
-                                                '*desc-preproc_bold.nii*'))[0])
+                                                f'*task-{task}*space-T1w_desc-preproc_bold.nii*'))[0])
 
                     img = four_to_three(dummyFile)[0]
 
@@ -322,3 +322,4 @@ for subI,sub in enumerate(subs):
                                             create_gif  = config['cortexPlot']['createGIF'],
                                             headless    = True,
                                             )
+
