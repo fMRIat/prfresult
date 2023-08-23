@@ -3,6 +3,6 @@
 
 ME=davidlinhardt
 GEAR=prfresult
-VERSION=dev #0.0.4
+VERSION=0.0.6
 docker build $1 --platform linux/x86_64 --tag $ME/$GEAR:$VERSION .
 

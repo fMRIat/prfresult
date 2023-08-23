@@ -213,6 +213,7 @@ for subI,sub in enumerate(subs):
         for taskI, task in enumerate(tasks):
             # find all runs when given, else all runs
             BIDSruns = layout.get_run(subject=sub, session=ses, task=task)
+            BIDSruns = [str(r) for r in BIDSruns]
             runs = config2list(config['runs'], BIDSruns)
             runs = [r if len(str(r)) < 4 or r.endswith('avg') else f'{r}avg' for r in runs]
 

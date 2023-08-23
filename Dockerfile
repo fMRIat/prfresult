@@ -39,6 +39,8 @@ RUN grep -Ril np.float\) /opt/conda/envs/scientific/lib/python3.10/site-packages
 RUN grep -Ril np.int\: /opt/conda/envs/scientific/lib/python3.10/site-packages/surfer | xargs -r sed -i 's/np\.int:/np.int32:/g'
 RUN grep -Ril np.int\) /opt/conda/envs/scientific/lib/python3.10/site-packages/surfer | xargs -r sed -i 's/np\.int)/np.int32)/g'
 
+RUN sed -i 's/spatialimages/filebasedimages/g' /opt/conda/envs/scientific/lib/python3.10/site-packages/surfer/io.py
+
 RUN apt update && apt install -y jq
 
 RUN sed -i 's/from collections import Sequence/from collections.abc import Sequence/g' /opt/conda/envs/scientific/lib/python3.10/site-packages/surfer/utils.py
