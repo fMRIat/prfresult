@@ -77,6 +77,7 @@ defaultConfig = {
  	'sessions' : ['all'],
  	'tasks'    : ['all'],
  	'runs'     : ['all'],
+    'prfanalyzeSolver'  : 'vista',
     'prfanalyzeAnalysis': '01',
     'masks' : {
      	'rois'     : [['V1']],
@@ -158,8 +159,10 @@ print()
 ################################################
 # set specified prfprepare analyses
 prfanalyzeAnalysis = config['prfanalyzeAnalysis']
+prfanalyzeSolver = config['prfanalyzeSolver']
 prfanalyzeP = path.join(flywheelBase, 'data', 'derivatives',
-                        'prfanalyze-vista', f'analysis-{prfanalyzeAnalysis}')
+                        f'prfanalyze-{prfanalyzeSolver}',
+                        f'analysis-{prfanalyzeAnalysis}')
 # read the options.json
 with open(path.join(prfanalyzeP, 'options.json'), 'r') as fl:
     prfanalyzeConfig = json.load(fl)
@@ -227,7 +230,7 @@ for subI,sub in enumerate(subs):
                                           session = ses,
                                           task    = task,
                                           run     = run,
-                                          method  = 'vista',
+                                          method  = prfanalyzeSolver,
                                           analysis = prfanalyzeAnalysis,
                                           hemi    = '',
                                           baseP   = flywheelBase,
@@ -265,8 +268,6 @@ for subI,sub in enumerate(subs):
                                                 f'*task-{task}*space-T1w_desc-preproc_bold.nii*'))[0])
 
                     img = four_to_three(dummyFile)[0]
-
-                    ana.loadTC()
 
                     for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
                         if param == 'mask':
