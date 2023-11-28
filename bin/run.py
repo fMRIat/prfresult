@@ -1,8 +1,8 @@
-#%%
+# %%
 import os
 import sys
 
-sys.path.append('/')
+sys.path.append("/")
 
 import collections.abc
 import itertools
@@ -18,10 +18,11 @@ from PRFclass import PRF
 from matplotlib import pyplot as plt
 
 # get all needed functions
-flywheelBase = '/flywheel/v0'
+flywheelBase = "/flywheel/v0"
 sys.path.insert(0, flywheelBase)
 
-configFile = path.join(flywheelBase, 'config.json')
+configFile = path.join(flywheelBase, "config.json")
+
 
 # updates nested dicts
 def update(d, u):
@@ -35,13 +36,13 @@ def update(d, u):
 
 # turns a list within a string to a list of strings
 def listFromStr(s):
-    return s.split(']')[0].split('[')[-1].split(',')
+    return s.split("]")[0].split("[")[-1].split(",")
 
 
 #  turns the config entry to a loopable list
 def config2list(c, b=None):
     if b is not None:
-        if 'all' in c:
+        if "all" in c:
             l = b
         else:
             if isinstance(c, list):
@@ -73,35 +74,35 @@ def config2list(c, b=None):
 ################################################
 # define de default config
 defaultConfig = {
- 	'subjects' : ['all'],
- 	'sessions' : ['all'],
- 	'tasks'    : ['all'],
- 	'runs'     : ['all'],
-    'prfanalyzeSolver'  : 'vista',
-    'prfanalyzeAnalysis': '01',
-    'masks' : {
-     	'rois'     : [['V1']],
-     	'atlases'  : ['benson'],
-        'varianceExplained' : [0.1],
-        'eccentricity' : False,
-        'beta' : False,
+    "subjects": ["all"],
+    "sessions": ["all"],
+    "tasks": ["all"],
+    "runs": ["all"],
+    "prfanalyzeSolver": "vista",
+    "prfanalyzeAnalysis": "01",
+    "masks": {
+        "rois": [["V1"]],
+        "atlases": ["benson"],
+        "varianceExplained": [0.1],
+        "eccentricity": False,
+        "beta": False,
     },
- 	'coveragePlot' : {
-     	'create' : True,
-        'method' : ['max'],
-        'minColorBar' : [0],
- 	},
-    'cortexPlot' : {
-         'createCortex' : True,
-         'createGIF'    : True,
-         'parameter'    : ['ecc'],
-         'hemisphere'   : 'both',
-         'surface'      : ['sphere'],
-         'showBordersArea'  : ['V1'],
+    "coveragePlot": {
+        "create": True,
+        "method": ["max"],
+        "minColorBar": [0],
     },
-    'saveAsOrig': True,
-    'verbose' : True,
-    'force'   : False,
+    "cortexPlot": {
+        "createCortex": True,
+        "createGIF": True,
+        "parameter": ["ecc"],
+        "hemisphere": "both",
+        "surface": ["sphere"],
+        "showBordersArea": ["V1"],
+    },
+    "saveAsOrig": True,
+    "verbose": True,
+    "force": False,
 }
 
 
@@ -109,178 +110,220 @@ def die(*args):
     print(*args)
     sys.exit(1)
 
+
 ################################################
 # load in the config json and update the config dict
 try:
-    with open(configFile, 'r') as fl:
+    with open(configFile, "r") as fl:
         jsonConfig = json.load(fl)
     config = update(defaultConfig, jsonConfig)
 
 except Exception:
-    with open(path.join(flywheelBase, 'config.json'), 'w') as fl:
+    with open(path.join(flywheelBase, "config.json"), "w") as fl:
         json.dump(defaultConfig, fl, indent=4)
-    print('Could not read config.json!')
-    die('Dumped the default config.')
+    print("Could not read config.json!")
+    die("Dumped the default config.")
 
-verbose = config['verbose']
-force = config['force']
+verbose = config["verbose"]
+force = config["force"]
+
 
 def note(*args):
     if verbose:
         print(*args)
     return None
 
-note('Following configuration is used:')
+
+note("Following configuration is used:")
 note(json.dumps(config, indent=4))
 
 ################################################
 # find all mask combinations
-allMaskCombs = list(itertools.product(
-                    config2list(config['masks']['rois']),
-                    config2list(config['masks']['atlases']),
-                    config2list(config['masks']['varianceExplained']),
-                    config2list(config['masks']['eccentricity']),
-                    config2list(config['masks']['beta']),
-                    ))
+allMaskCombs = list(
+    itertools.product(
+        config2list(config["masks"]["rois"]),
+        config2list(config["masks"]["atlases"]),
+        config2list(config["masks"]["varianceExplained"]),
+        config2list(config["masks"]["eccentricity"]),
+        config2list(config["masks"]["beta"]),
+    )
+)
 
 # find all coverage map parameter combinations defined
-covMapParamsCombs = list(itertools.product(
-                    config2list(config['coveragePlot']['method']),
-                    config2list(config['coveragePlot']['minColorBar']),
-                    ))
+covMapParamsCombs = list(
+    itertools.product(
+        config2list(config["coveragePlot"]["method"]),
+        config2list(config["coveragePlot"]["minColorBar"]),
+    )
+)
 
-cortexParamsCombs = list(itertools.product(
-                    config2list(config['cortexPlot']['parameter']),
-                    config2list(config['cortexPlot']['hemisphere']),
-                    config2list(config['cortexPlot']['surface']),
-                    ))
+cortexParamsCombs = list(
+    itertools.product(
+        config2list(config["cortexPlot"]["parameter"]),
+        config2list(config["cortexPlot"]["hemisphere"]),
+        config2list(config["cortexPlot"]["surface"]),
+    )
+)
 
 print()
 
 ################################################
 # set specified prfprepare analyses
-prfanalyzeAnalysis = config['prfanalyzeAnalysis']
-prfanalyzeSolver = config['prfanalyzeSolver']
-prfanalyzeP = path.join(flywheelBase, 'data', 'derivatives',
-                        f'prfanalyze-{prfanalyzeSolver}',
-                        f'analysis-{prfanalyzeAnalysis}')
+prfanalyzeAnalysis = config["prfanalyzeAnalysis"]
+prfanalyzeSolver = config["prfanalyzeSolver"]
+prfanalyzeP = path.join(
+    flywheelBase,
+    "data",
+    "derivatives",
+    f"prfanalyze-{prfanalyzeSolver}",
+    f"analysis-{prfanalyzeAnalysis}",
+)
 # read the options.json
-with open(path.join(prfanalyzeP, 'options.json'), 'r') as fl:
+with open(path.join(prfanalyzeP, "options.json"), "r") as fl:
     prfanalyzeConfig = json.load(fl)
 
-prfprepareAnalysis = prfanalyzeConfig['prfprepareAnalysis']
-prfprepareP = path.join(flywheelBase, 'data', 'derivatives',
-                        'prfprepare', f'analysis-{prfprepareAnalysis}')
+prfprepareAnalysis = prfanalyzeConfig["prfprepareAnalysis"]
+prfprepareP = path.join(
+    flywheelBase, "data", "derivatives", "prfprepare", f"analysis-{prfprepareAnalysis}"
+)
 
 # read the options.json
-with open(path.join(prfprepareP, 'options.json'), 'r') as fl:
+with open(path.join(prfprepareP, "options.json"), "r") as fl:
     prfprepareConfig = json.load(fl)
 
-analysisSpace = prfprepareConfig['analysisSpace']
+analysisSpace = prfprepareConfig["analysisSpace"]
 
 # get the BIDS layout
 layout = bids.BIDSLayout(prfprepareP)
 
 # subject from config and check
 BIDSsubs = layout.get_subjects()
-subs = config2list(config['subjects'], BIDSsubs)
+subs = config2list(config["subjects"], BIDSsubs)
 
 ################################################
 # loop over subjects
-for subI,sub in enumerate(subs):
-
+for subI, sub in enumerate(subs):
     # close all open figures
-    plt.close('all')
+    plt.close("all")
 
     if sub not in BIDSsubs:
-        die(f'We did not find given subject {sub} in BIDS dir!')
+        die(f"We did not find given subject {sub} in BIDS dir!")
 
     # session if given otherwise it will loop through sessions from BIDS
     BIDSsess = layout.get_session(subject=sub)
-    sess = config2list(config['sessions'], BIDSsess)
+    sess = config2list(config["sessions"], BIDSsess)
 
-################################################
-# loop over sessions
+    ################################################
+    # loop over sessions
     for sesI, ses in enumerate(sess):
-
         if ses not in BIDSsess:
-            die(f'We did not find given session {ses} in subject {sub}!')
+            die(f"We did not find given session {ses} in subject {sub}!")
         else:
-            note(f'Working: sub-{sub} ses-{ses}...')
+            note(f"Working: sub-{sub} ses-{ses}...")
 
         # find all tasks when given, else all tasks
         BIDStasks = layout.get_task(subject=sub, session=ses)
-        tasks = config2list(config['tasks'], BIDStasks)
+        tasks = config2list(config["tasks"], BIDStasks)
 
-################################################
-# loop over tasks
+        ################################################
+        # loop over tasks
         for taskI, task in enumerate(tasks):
             # find all runs when given, else all runs
             BIDSruns = layout.get_run(subject=sub, session=ses, task=task)
             BIDSruns = [str(r) for r in BIDSruns]
-            runs = config2list(config['runs'], BIDSruns)
-            runs = [r if len(str(r)) < 4 or r.endswith('avg') else f'{r}avg' for r in runs]
+            runs = config2list(config["runs"], BIDSruns)
+            runs = [
+                r if len(str(r)) < 4 or r.endswith("avg") else f"{r}avg" for r in runs
+            ]
 
-################################################
-# loop over runs
-            for runI,run in enumerate(runs):
+            ################################################
+            # loop over runs
+            for runI, run in enumerate(runs):
                 try:
                     # now load the analysis
-                    ana = PRF.from_docker(study   = 'data',
-                                          subject = sub,
-                                          session = ses,
-                                          task    = task,
-                                          run     = run,
-                                          method  = prfanalyzeSolver,
-                                          analysis = prfanalyzeAnalysis,
-                                          hemi    = '',
-                                          baseP   = flywheelBase,
-                                          orientation = 'VF'
-                                          )
+                    ana = PRF.from_docker(
+                        study="data",
+                        subject=sub,
+                        session=ses,
+                        task=task,
+                        run=run,
+                        method=prfanalyzeSolver,
+                        analysis=prfanalyzeAnalysis,
+                        hemi="",
+                        baseP=flywheelBase,
+                        orientation="VF",
+                    )
                 except:
                     continue
 
-################################################
-# apply all masks
-                for roi,atlas,varExpThresh,eccThresh,betaThresh in allMaskCombs:
+                ################################################
+                # apply all masks
+                for roi, atlas, varExpThresh, eccThresh, betaThresh in allMaskCombs:
+                    ana.maskROI(area=roi, atlas=atlas)
 
-                    ana.maskROI(area  = roi,
-                                atlas = atlas)
-
-                    ana.maskVarExp(varExpThresh = varExpThresh)
+                    ana.maskVarExp(varExpThresh=varExpThresh)
 
                     if eccThresh:
-                        ana.maskEcc(rad = eccThresh)
+                        ana.maskEcc(rad=eccThresh)
 
                     if betaThresh:
-                        ana.maskBetaThresh(betaMax = betaThresh)
+                        ana.maskBetaThresh(betaMax=betaThresh)
 
-################################################
-# save the result files back to volumes or surface
-                if config['saveAsOrig']:
-                    if analysisSpace == 'volume':
-                        outFpath = path.join(flywheelBase, 'data', 'derivatives',
-                                            'prfresult', f'analysis-{prfanalyzeAnalysis}',
-                                            'volumeResults', f'sub-{sub}', f'ses-{ses}')
+                ################################################
+                # save the result files back to volumes or surface
+                if config["saveAsOrig"]:
+                    if analysisSpace == "volume":
+                        outFpath = path.join(
+                            flywheelBase,
+                            "data",
+                            "derivatives",
+                            "prfresult",
+                            f"analysis-{prfanalyzeAnalysis}",
+                            "volumeResults",
+                            f"sub-{sub}",
+                            f"ses-{ses}",
+                        )
                         os.makedirs(outFpath, exist_ok=True)
 
-                        dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
-                                                    f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
-                                                    f'sub-{sub}', f'ses-{ses}', 'func',
-                                                    f'*task-{task}*space-T1w_desc-preproc_bold.nii*'))[0])
+                        dummyFile = nib.load(
+                            glob(
+                                path.join(
+                                    flywheelBase,
+                                    "data",
+                                    "derivatives",
+                                    "fmriprep",
+                                    f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
+                                    f"sub-{sub}",
+                                    f"ses-{ses}",
+                                    "func",
+                                    f"*task-{task}*space-T1w_desc-preproc_bold.nii*",
+                                )
+                            )[0]
+                        )
 
                         img = four_to_three(dummyFile)[0]
 
-                        for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
-                            if param == 'mask':
-                                outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
+                        for param in [
+                            "x0",
+                            "y0",
+                            "s0",
+                            "r0",
+                            "phi0",
+                            "varexp0",
+                            "mask",
+                        ]:  # , 'voxelTC0'
+                            if param == "mask":
+                                outFname = ana._get_surfaceSavePath(
+                                    param, "BOTH", "results", plain=False
+                                )
                             else:
-                                outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=True)
+                                outFname = ana._get_surfaceSavePath(
+                                    param, "BOTH", "results", plain=True
+                                )
 
-                            outF = path.join(outFpath, outFname[1]+'.nii.gz')
+                            outF = path.join(outFpath, outFname[1] + ".nii.gz")
                             if not path.isfile(outF) or force:
-
-                                if param == 'voxelTC0':
+                                if param == "voxelTC0":
                                     dat = np.zeros(dummyFile.shape) * np.nan
                                 else:
                                     dat = np.zeros(img.shape) * np.nan
@@ -288,89 +331,131 @@ for subI,sub in enumerate(subs):
                                 for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
                                     dat[tuple(pos)] = getattr(ana, param)[boldI]
 
-                                newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
+                                newNii = nib.Nifti1Image(
+                                    dat, header=img.header, affine=img.affine
+                                )
                                 nib.save(newNii, outF)
 
-                    elif analysisSpace == 'fsnative':
-                        outFpath = path.join(flywheelBase, 'data', 'derivatives',
-                                            'prfresult', f'analysis-{prfanalyzeAnalysis}',
-                                            'surfaceResults', f'sub-{sub}', f'ses-{ses}')
+                    elif analysisSpace == "fsnative":
+                        outFpath = path.join(
+                            flywheelBase,
+                            "data",
+                            "derivatives",
+                            "prfresult",
+                            f"analysis-{prfanalyzeAnalysis}",
+                            "surfaceResults",
+                            f"sub-{sub}",
+                            f"ses-{ses}",
+                        )
                         os.makedirs(outFpath, exist_ok=True)
 
-                        if 'both' in config2list(config['cortexPlot']['hemisphere']):
-                            hemis = ['L', 'R']
+                        if "both" in config2list(config["cortexPlot"]["hemisphere"]):
+                            hemis = ["L", "R"]
                         else:
-                            hemis = config2list(config['cortexPlot']['hemisphere'])
+                            hemis = config2list(config["cortexPlot"]["hemisphere"])
 
                         for hemi in hemis:
-                            dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
-                                                        f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
-                                                        f'sub-{sub}', f'ses-{ses}', 'func',
-                                                        f'*task-{task}*hemi-{hemi}_space-fsnative_bold.func.gii'))[0])
+                            dummyFile = nib.load(
+                                glob(
+                                    path.join(
+                                        flywheelBase,
+                                        "data",
+                                        "derivatives",
+                                        "fmriprep",
+                                        f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
+                                        f"sub-{sub}",
+                                        f"ses-{ses}",
+                                        "func",
+                                        f"*task-{task}*hemi-{hemi}_space-fsnative_bold.func.gii",
+                                    )
+                                )[0]
+                            )
 
-                            for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
-                                if param == 'mask':
-                                    outFname = ana._get_surfaceSavePath(param, hemi, 'results', plain=False)
+                            for param in [
+                                "x0",
+                                "y0",
+                                "s0",
+                                "r0",
+                                "phi0",
+                                "varexp0",
+                                "mask",
+                            ]:  # , 'voxelTC0'
+                                if param == "mask":
+                                    outFname = ana._get_surfaceSavePath(
+                                        param, hemi, "results", plain=False
+                                    )
                                 else:
-                                    outFname = ana._get_surfaceSavePath(param, hemi, 'results', plain=True)
+                                    outFname = ana._get_surfaceSavePath(
+                                        param, hemi, "results", plain=True
+                                    )
 
-                                outF = path.join(outFpath, outFname[1]+'.func.gii')
+                                outF = path.join(outFpath, outFname[1] + ".func.gii")
                                 if not path.isfile(outF) or force:
-
-                                    if param == 'voxelTC0':
-                                        dat = np.zeros(dummyFile.agg_data().shape) * np.nan
+                                    if param == "voxelTC0":
+                                        dat = (
+                                            np.zeros(dummyFile.agg_data().shape)
+                                            * np.nan
+                                        )
                                     else:
-                                        dat = np.zeros(len(dummyFile.agg_data())) * np.nan
+                                        dat = (
+                                            np.zeros(len(dummyFile.agg_data())) * np.nan
+                                        )
 
                                     # create mask dependent on used hemisphere
-                                    if hemi[0].upper() == 'L':
-                                        hemiM = ana._roiWhichHemi == 'L'
-                                    elif hemi[0].upper() == 'R':
-                                        hemiM = ana._roiWhichHemi == 'R'
+                                    if hemi[0].upper() == "L":
+                                        hemiM = ana._roiWhichHemi == "L"
+                                    elif hemi[0].upper() == "R":
+                                        hemiM = ana._roiWhichHemi == "R"
 
                                     roiIndOrigHemi = ana._roiIndOrig[hemiM]
                                     roiIndBoldHemi = ana._roiIndBold[hemiM]
 
-                                    for pos, boldI in zip(roiIndOrigHemi, roiIndBoldHemi):
+                                    for pos, boldI in zip(
+                                        roiIndOrigHemi, roiIndBoldHemi
+                                    ):
                                         dat[pos] = getattr(ana, param)[boldI]
 
                                     newGii = nib.gifti.gifti.GiftiImage()
-                                    newGii.add_gifti_data_array(nib.gifti.gifti.GiftiDataArray(data=dat.astype(np.float32)))
+                                    newGii.add_gifti_data_array(
+                                        nib.gifti.gifti.GiftiDataArray(
+                                            data=dat.astype(np.float32)
+                                        )
+                                    )
                                     nib.save(newGii, outF)
 
-################################################
-# finally cretate Coverage plots
-                if config['coveragePlot']['create']:
+                ################################################
+                # finally cretate Coverage plots
+                if config["coveragePlot"]["create"]:
+                    for (
+                        method,
+                        minColbar,
+                    ) in covMapParamsCombs:
+                        ana.plot_covMap(
+                            method=method,
+                            cmapMin=minColbar,
+                            show=False,
+                            save=True,
+                            force=force,
+                        )
 
-                    for method, minColbar, in covMapParamsCombs:
-
-                        ana.plot_covMap(method  = method,
-                                        cmapMin = minColbar,
-                                        show    = False,
-                                        save    = True,
-                                        force   = force,
-                                        )
-
-
-################################################
-# cretate the cortex gif plots
-                if config['cortexPlot']['createCortex']:
-                    if analysisSpace == 'volume':
-                        print('We can not yet plot volume data to surface!')
+                ################################################
+                # cretate the cortex gif plots
+                if config["cortexPlot"]["createCortex"]:
+                    if analysisSpace == "volume":
+                        print("We can not yet plot volume data to surface!")
                         continue
 
                     for param, hemi, surface in cortexParamsCombs:
-
-                        ana.plot_toSurface(param = param,
-                                            hemi  = hemi,
-                                            save  = True,
-                                            fmriprepAna      = prfprepareConfig['fmriprep_analysis'],
-                                            forceNewPosition = False,
-                                            surface     = surface,
-                                            showBordersAtlas = 'all',
-                                            showBordersArea  = config['cortexPlot']['showBordersArea'],
-                                            interactive = False,
-                                            create_gif  = config['cortexPlot']['createGIF'],
-                                            headless    = True,
-                                            )
-
+                        ana.plot_toSurface(
+                            param=param,
+                            hemi=hemi,
+                            save=True,
+                            fmriprepAna=prfprepareConfig["fmriprep_analysis"],
+                            forceNewPosition=False,
+                            surface=surface,
+                            showBordersAtlas="all",
+                            showBordersArea=config["cortexPlot"]["showBordersArea"],
+                            interactive=False,
+                            create_gif=config["cortexPlot"]["createGIF"],
+                            headless=True,
+                        )
