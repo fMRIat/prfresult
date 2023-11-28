@@ -50,7 +50,7 @@
             "V1"
         ]
     },
-    "saveAs3D": true,
+    "saveAsOrig": true,
     "verbose": true,
     "force": false
 }

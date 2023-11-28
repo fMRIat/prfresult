@@ -99,7 +99,7 @@ defaultConfig = {
          'surface'      : ['sphere'],
          'showBordersArea'  : ['V1'],
     },
-    'saveAs3D': True,
+    'saveAsOrig': True,
     'verbose' : True,
     'force'   : False,
 }
@@ -133,6 +133,7 @@ def note(*args):
 note('Following configuration is used:')
 note(json.dumps(config, indent=4))
 
+################################################
 # find all mask combinations
 allMaskCombs = list(itertools.product(
                     config2list(config['masks']['rois']),
@@ -255,39 +256,87 @@ for subI,sub in enumerate(subs):
                         ana.maskBetaThresh(betaMax = betaThresh)
 
 ################################################
-# save the result files back to volumes
-                if analysisSpace == 'volume' and config['saveAs3D']:
-                    outFpath = path.join(flywheelBase, 'data', 'derivatives',
-                                         'prfresult', f'analysis-{prfanalyzeAnalysis}',
-                                         'volumeResults', f'sub-{sub}', f'ses-{ses}')
-                    os.makedirs(outFpath, exist_ok=True)
+# save the result files back to volumes or surface
+                if config['saveAsOrig']:
+                    if analysisSpace == 'volume':
+                        outFpath = path.join(flywheelBase, 'data', 'derivatives',
+                                            'prfresult', f'analysis-{prfanalyzeAnalysis}',
+                                            'volumeResults', f'sub-{sub}', f'ses-{ses}')
+                        os.makedirs(outFpath, exist_ok=True)
 
-                    dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
-                                                f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
-                                                f'sub-{sub}', f'ses-{ses}', 'func',
-                                                f'*task-{task}*space-T1w_desc-preproc_bold.nii*'))[0])
+                        dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
+                                                    f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
+                                                    f'sub-{sub}', f'ses-{ses}', 'func',
+                                                    f'*task-{task}*space-T1w_desc-preproc_bold.nii*'))[0])
 
-                    img = four_to_three(dummyFile)[0]
+                        img = four_to_three(dummyFile)[0]
 
-                    for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
-                        if param == 'mask':
-                            outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
-                        else:
-                            outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=True)
-
-                        outF = path.join(outFpath, outFname[1]+'.nii.gz')
-                        if not path.isfile(outF) or force:
-
-                            if param == 'voxelTC0':
-                                dat = np.zeros(dummyFile.shape)
+                        for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
+                            if param == 'mask':
+                                outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=False)
                             else:
-                                dat = np.zeros(img.shape)
+                                outFname = ana._get_surfaceSavePath(param, 'BOTH', 'results', plain=True)
 
-                            for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
-                                dat[tuple(pos)] = getattr(ana, param)[boldI]
+                            outF = path.join(outFpath, outFname[1]+'.nii.gz')
+                            if not path.isfile(outF) or force:
 
-                            newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
-                            nib.save(newNii, outF)
+                                if param == 'voxelTC0':
+                                    dat = np.zeros(dummyFile.shape) * np.nan
+                                else:
+                                    dat = np.zeros(img.shape) * np.nan
+
+                                for pos, boldI in zip(ana._roiIndOrig, ana._roiIndBold):
+                                    dat[tuple(pos)] = getattr(ana, param)[boldI]
+
+                                newNii = nib.Nifti1Image(dat, header=img.header, affine=img.affine)
+                                nib.save(newNii, outF)
+
+                    elif analysisSpace == 'fsnative':
+                        outFpath = path.join(flywheelBase, 'data', 'derivatives',
+                                            'prfresult', f'analysis-{prfanalyzeAnalysis}',
+                                            'surfaceResults', f'sub-{sub}', f'ses-{ses}')
+                        os.makedirs(outFpath, exist_ok=True)
+
+                        if 'both' in config2list(config['cortexPlot']['hemisphere']):
+                            hemis = ['L', 'R']
+                        else:
+                            hemis = config2list(config['cortexPlot']['hemisphere'])
+
+                        for hemi in hemis:
+                            dummyFile = nib.load(glob(path.join(flywheelBase, 'data', 'derivatives', 'fmriprep',
+                                                        f'analysis-{prfprepareConfig["fmriprep_analysis"]}',
+                                                        f'sub-{sub}', f'ses-{ses}', 'func',
+                                                        f'*task-{task}*hemi-{hemi}_space-fsnative_bold.func.gii'))[0])
+
+                            for param in ['x0', 'y0', 's0', 'r0', 'phi0', 'varexp0', 'mask']:#, 'voxelTC0'
+                                if param == 'mask':
+                                    outFname = ana._get_surfaceSavePath(param, hemi, 'results', plain=False)
+                                else:
+                                    outFname = ana._get_surfaceSavePath(param, hemi, 'results', plain=True)
+
+                                outF = path.join(outFpath, outFname[1]+'.func.gii')
+                                if not path.isfile(outF) or force:
+
+                                    if param == 'voxelTC0':
+                                        dat = np.zeros(dummyFile.agg_data().shape) * np.nan
+                                    else:
+                                        dat = np.zeros(len(dummyFile.agg_data())) * np.nan
+
+                                    # create mask dependent on used hemisphere
+                                    if hemi[0].upper() == 'L':
+                                        hemiM = ana._roiWhichHemi == 'L'
+                                    elif hemi[0].upper() == 'R':
+                                        hemiM = ana._roiWhichHemi == 'R'
+
+                                    roiIndOrigHemi = ana._roiIndOrig[hemiM]
+                                    roiIndBoldHemi = ana._roiIndBold[hemiM]
+
+                                    for pos, boldI in zip(roiIndOrigHemi, roiIndBoldHemi):
+                                        dat[pos] = getattr(ana, param)[boldI]
+
+                                    newGii = nib.gifti.gifti.GiftiImage()
+                                    newGii.add_gifti_data_array(nib.gifti.gifti.GiftiDataArray(data=dat.astype(np.float32)))
+                                    nib.save(newGii, outF)
 
 ################################################
 # finally cretate Coverage plots
