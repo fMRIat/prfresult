@@ -22,6 +22,7 @@ dependencies:
   - mayavi==4.8.1
   - traits==6.4.1
   - traitsui==7.4.3
+  - setuptools<65
   - pip:
     - pybids==0.15.6
     - nipy==0.5.0

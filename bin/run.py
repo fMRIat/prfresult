@@ -99,6 +99,7 @@ defaultConfig = {
         "hemisphere": "both",
         "surface": ["sphere"],
         "showBordersArea": ["V1"],
+        "maxEcc": None,
     },
     "saveAsOrig": True,
     "verbose": True,
@@ -479,4 +480,7 @@ for subI, sub in enumerate(subs):
                                 interactive=False,
                                 create_gif=config["cortexPlot"]["createGIF"],
                                 headless=True,
+                                maxEcc=config["cortexPlot"]["maxEcc"],
                             )
+
+# %%
