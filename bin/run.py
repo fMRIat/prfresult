@@ -199,6 +199,8 @@ layout = bids.BIDSLayout(prfprepareP)
 
 # subject from config and check
 BIDSsubs = layout.get_subjects()
+if len(BIDSsubs) == 0:
+    die(f"We could not find any subjects in prfprepare/analysis-{prfprepareAnalysis}!")
 subs = config2list(config["subjects"], BIDSsubs)
 
 ################################################
@@ -212,6 +214,10 @@ for subI, sub in enumerate(subs):
 
     # session if given otherwise it will loop through sessions from BIDS
     BIDSsess = layout.get_session(subject=sub)
+    if len(BIDSsess) == 0:
+        die(
+            f"We could not find any sessions in prfprepare/analysis-{prfprepareAnalysis}/sub-{sub}!"
+        )
     sess = config2list(config["sessions"], BIDSsess)
 
     ################################################
@@ -224,6 +230,10 @@ for subI, sub in enumerate(subs):
 
         # find all tasks when given, else all tasks
         BIDStasks = layout.get_task(subject=sub, session=ses)
+        if len(BIDStasks) == 0:
+            die(
+                f"We could not find any tasks in prfprepare/analysis-{prfprepareAnalysis}/sub-{sub}/ses-{ses}!"
+            )
         tasks = config2list(config["tasks"], BIDStasks)
 
         ################################################
@@ -255,6 +265,10 @@ for subI, sub in enumerate(subs):
                         orientation="VF",
                     )
                 except:
+                    note(
+                        f"Could not (yet) find results sub-{sub}_ses-{ses}_task-{task}_run-{run}"
+                        "       in prfanalyze-{prfanalyzeSolver}/analysis-{prfanalyzeAnalysis}..."
+                    )
                     continue
 
                 ################################################
