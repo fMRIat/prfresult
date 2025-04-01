@@ -79,12 +79,6 @@ done
 #Xvfb :1 -screen 0 1280x1024x24 -auth localhost &
 #export DISPLAY=:10
 
-# Run the conda config again, to be sure we are using the right python
-source /opt/conda/etc/profile.d/conda.sh
-conda activate scientific
-python --version
-#jupyter nbextension install --py mayavi --user > /dev/null 2>&1
-
 # Main Script ##################################################################
 
 # If no input is given we exit
