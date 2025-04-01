@@ -88,6 +88,10 @@ RUN chmod -R +x \
       ${FLYWHEEL}/run.py \
       /PRFclass
 
+# set XDG_RUNTIME_DIR to /tmp
+RUN mkdir -p /tmp/xdg
+ENV XDG_RUNTIME_DIR=/tmp/xdg
+
 WORKDIR ${FLYWHEEL}
 # Run the run.sh script on entry.
 ENTRYPOINT ["/flywheel/v0/run.sh"]
